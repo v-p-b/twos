@@ -46,6 +46,8 @@ fn main() {
         if b > tmp_unsigned.bits() {
             let new_bytes_len = (b + (b % 8)) / 8;
             tmp_bytes.resize(new_bytes_len.try_into().unwrap(), 0);
+        } else {
+            eprintln!("[WARN] Bit size argument ignored!");
         }
     }
 
