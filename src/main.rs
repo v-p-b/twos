@@ -1,11 +1,10 @@
-use num_bigint::{BigUint, BigInt, Sign};
-use num_traits::ops::bytes::{FromBytes, ToBytes};
-use std::ops::Neg;
 use clap::Parser;
+use num_bigint::{BigInt, BigUint, Sign};
+use num_traits::ops::bytes::{FromBytes, ToBytes};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
-struct Args{
+struct Args {
     /// Number
     number: String,
 
@@ -19,56 +18,44 @@ struct Args{
     neg: bool,
 }
 
-
-fn print_all(unsigned: BigUint, signed: BigInt){
-    println!("[BITS] {}", signed.bits());
+fn print_all(unsigned: BigUint, signed: BigInt) {
+    println!("[ULEN] {}", unsigned.bits());
+    println!("[SLEN] {}", signed.bits());
     println!("[UHEX] {}", unsigned.to_str_radix(16));
-    println!("[IHEX] {}", signed.to_str_radix(16));
+    println!("[SHEX] {}", signed.to_str_radix(16));
     println!("[UBIN] {}", unsigned.to_str_radix(2));
-    println!("[IBIN] {}", signed.to_str_radix(2));
+    println!("[SBIN] {}", signed.to_str_radix(2));
     println!("[UDEC] {}", unsigned.to_str_radix(10));
-    println!("[IDEC] {}", signed.to_str_radix(10));
-
-
+    println!("[SDEC] {}", signed.to_str_radix(10));
 }
 
 fn main() {
     let args = Args::parse();
 
-    let tmp_unsigned = if args.number[0..2] == *"0x"{
+    let tmp_unsigned = if args.number[0..2] == *"0x" {
         BigUint::parse_bytes(args.number[2..].as_bytes(), 16).expect("Hexadecimal parse error!")
-    }else if args.number[0..2] == *"0b"{
+    } else if args.number[0..2] == *"0b" {
         BigUint::parse_bytes(args.number[2..].as_bytes(), 2).expect("Binary parse error!")
-    }else{
+    } else {
         BigUint::parse_bytes(args.number.as_bytes(), 10).expect("Decimal parse error!")
     };
-    
+
     let mut tmp_bytes = tmp_unsigned.to_bytes_le();
 
-    /*
-    let mut sign = if tmp_bytes[tmp_bytes.len() - 1] > 0x7f{
-        Sign::Minus
-    }else{
-        Sign::Plus
-    };*/
-
     if let Some(b) = args.bits {
-        if b > tmp_unsigned.bits()  {
-            println!("{}", tmp_bytes.capacity());
-            let new_bytes_len = (b + (b%8))/8;
-            tmp_bytes.resize(new_bytes_len.try_into().unwrap(),0);
-            println!("{}", tmp_bytes.capacity());
+        if b > tmp_unsigned.bits() {
+            let new_bytes_len = (b + (b % 8)) / 8;
+            tmp_bytes.resize(new_bytes_len.try_into().unwrap(), 0);
         }
     }
 
     let signed = if !args.neg {
         BigInt::from_le_bytes(&tmp_bytes)
-    }else{
-        BigInt::from_bytes_le(Sign::Minus,&tmp_bytes)
+    } else {
+        BigInt::from_bytes_le(Sign::Minus, &tmp_bytes)
     };
 
     let unsigned = BigUint::from_le_bytes(&signed.to_le_bytes());
 
     print_all(unsigned, signed);
 }
-
