@@ -5,7 +5,7 @@ use num_traits::ops::bytes::{FromBytes, ToBytes};
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Number
+    /// Number - "0x"/"0b" prefixes are recognized for hexadecimal/binary input
     number: String,
 
     /// Bit length (default: auto detect)
