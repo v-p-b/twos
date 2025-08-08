@@ -2,6 +2,11 @@
 name = "twos"
 version = "0.0.1-alpha"
 edition = "2024"
+description = "Command-line signed/unsigned integer converter utility (two's complement)"
+license = "GPL-3.0"
+homepage = "https://github.com/v-p-b/twos"
+repository = "https://github.com/v-p-b/twos"
+readme = "README.md"
 
 [dependencies]
 clap = { version = "4.5.40", features = ["derive"] }
