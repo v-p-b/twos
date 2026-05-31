@@ -2,6 +2,22 @@
 
 Signed/unsigned ([two's complement](https://en.wikipedia.org/wiki/Two%27s_complement)) command-line integer converter based on `num_bigint`.
 
+## Install
+
+From crates.io:
+
+```
+cargo install twos
+```
+
+From source:
+
+```
+git clone https://github.com/v-p-b/twos
+cd twos
+cargo install --path .
+```
+
 
 ## Usage
 
