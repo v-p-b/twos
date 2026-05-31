@@ -1,6 +1,6 @@
 use clap::Parser;
 use num_bigint::{BigInt, BigUint, Sign};
-use num_traits::ops::bytes::{FromBytes, ToBytes};
+use num_traits::ops::bytes::{FromBytes};
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -18,46 +18,113 @@ struct Args {
     neg: bool,
 }
 
-fn print_all(unsigned: BigUint, signed: BigInt) {
-    println!("[ULEN] {}", unsigned.bits());
-    println!("[SLEN] {}", signed.bits());
-    println!("[UHEX] {}", unsigned.to_str_radix(16));
-    println!("[SHEX] {}", signed.to_str_radix(16));
-    println!("[UBIN] {}", unsigned.to_str_radix(2));
-    println!("[SBIN] {}", signed.to_str_radix(2));
-    println!("[UDEC] {}", unsigned.to_str_radix(10));
-    println!("[SDEC] {}", signed.to_str_radix(10));
+pub fn get_ulen(unsigned: &BigUint) -> u64{
+    return unsigned.bits();
 }
 
-fn main() {
-    let args = Args::parse();
+pub fn get_slen(signed: &BigInt) -> u64{
+    return signed.bits();
+}
 
-    let tmp_unsigned = if args.number[0..2] == *"0x" {
-        BigUint::parse_bytes(args.number[2..].as_bytes(), 16).expect("Hexadecimal parse error!")
-    } else if args.number[0..2] == *"0b" {
-        BigUint::parse_bytes(args.number[2..].as_bytes(), 2).expect("Binary parse error!")
+pub fn get_uhex(unsigned: &BigUint) -> String{
+    unsigned.to_str_radix(16)
+}
+
+pub fn get_shex(signed: &BigInt) -> String{
+    signed.to_str_radix(16)
+}
+
+pub fn get_ubin(unsigned: &BigUint) -> String{
+    unsigned.to_str_radix(2)
+}
+
+pub fn get_sbin(signed: &BigInt) -> String{
+    signed.to_str_radix(2)
+}
+
+pub fn get_udec(unsigned: &BigUint) -> String{
+    unsigned.to_str_radix(10)
+}
+
+pub fn get_sdec(signed: &BigInt) -> String{
+    signed.to_str_radix(10)
+}
+
+fn print_all(unsigned: BigUint, signed: BigInt) {
+    println!("[ULEN] {}", get_ulen(&unsigned));
+    println!("[SLEN] {}", get_slen(&signed));
+    println!("[UHEX] {}", get_uhex(&unsigned));
+    println!("[SHEX] {}", get_shex(&signed));
+    println!("[UBIN] {}", get_ubin(&unsigned));
+    println!("[SBIN] {}", get_sbin(&signed));
+    println!("[UDEC] {}", get_udec(&unsigned));
+    println!("[SDEC] {}", get_sdec(&signed));
+}
+
+pub fn parse_input(number: String, bits: Option<u64>, neg: bool) -> (BigUint, BigInt){
+    
+    let tmp_unsigned = if number.len()>2 && number[0..2] == *"0x" {
+        BigUint::parse_bytes(number[2..].as_bytes(), 16).expect("Hexadecimal parse error!")
+    } else if number.len()>2 && number[0..2] == *"0b" {
+        BigUint::parse_bytes(number[2..].as_bytes(), 2).expect("Binary parse error!")
     } else {
-        BigUint::parse_bytes(args.number.as_bytes(), 10).expect("Decimal parse error!")
+        BigUint::parse_bytes(number.as_bytes(), 10).expect("Decimal parse error!")
     };
 
     let mut tmp_bytes = tmp_unsigned.to_bytes_le();
 
-    if let Some(b) = args.bits {
+    if let Some(b) = bits {
         if b > tmp_unsigned.bits() {
+            eprintln!("[WARN] Resizing");
             let new_bytes_len = (b + (b % 8)) / 8;
             tmp_bytes.resize(new_bytes_len.try_into().unwrap(), 0);
         } else {
             eprintln!("[WARN] Bit size argument ignored!");
         }
     }
+    eprintln!("New array size: {}", tmp_bytes.len());
 
-    let signed = if !args.neg {
+    let unsigned = BigUint::from_le_bytes(&tmp_bytes);
+    
+    let signed = if !neg {
         BigInt::from_le_bytes(&tmp_bytes)
     } else {
         BigInt::from_bytes_le(Sign::Minus, &tmp_bytes)
     };
 
-    let unsigned = BigUint::from_le_bytes(&signed.to_le_bytes());
+    return (unsigned, signed)
+}
 
+fn main() {
+    let args = Args::parse();
+    let (unsigned, signed) = parse_input(args.number, args.bits, args.neg);
+    
     print_all(unsigned, signed);
+}
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+use super::*;
+    
+    #[test]
+    fn all_ones(){
+        let (unsigned, signed)=parse_input(String::from_str("0xFFFFFFFF").unwrap(), None, false);
+        assert_eq!(get_ulen(&unsigned), 32);
+        assert_eq!(get_slen(&signed), 1);
+    }
+
+    #[test]
+    fn bits(){
+        let (_, signed30)=parse_input(String::from_str("0xDEADBEEF").unwrap(), None, false);
+        assert_eq!(get_slen(&signed30), 30);
+        
+        let (_, signed32)=parse_input(String::from_str("0xDEADBEEF").unwrap(), Some(64), false);
+        assert_eq!(get_slen(&signed32), 32);
+
+        let (_, signed1)=parse_input(String::from_str("0xFFFFFFFF").unwrap(), None, false);
+        assert_eq!(get_slen(&signed1), 1);
+        
+    }
 }
