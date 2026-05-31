@@ -84,12 +84,14 @@ pub fn parse_input(number: String, bits: Option<u64>, neg: bool) -> (BigUint, Bi
     }
     eprintln!("New array size: {}", tmp_bytes.len());
 
-    let unsigned = BigUint::from_le_bytes(&tmp_bytes);
+    let mut unsigned = BigUint::from_le_bytes(&tmp_bytes);
     
     let signed = if !neg {
         BigInt::from_le_bytes(&tmp_bytes)
     } else {
-        BigInt::from_bytes_le(Sign::Minus, &tmp_bytes)
+        let s = BigInt::from_bytes_le(Sign::Minus, &tmp_bytes);
+        unsigned = BigUint::from_bytes_le(&s.to_signed_bytes_le());
+        s
     };
 
     return (unsigned, signed)
@@ -125,6 +127,12 @@ use super::*;
 
         let (_, signed1)=parse_input(String::from_str("0xFFFFFFFF").unwrap(), None, false);
         assert_eq!(get_slen(&signed1), 1);
-        
+    }
+
+    #[test]
+    fn neg(){
+        let (unsigned, signed)=parse_input(String::from_str("0xDEADBEEF").unwrap(), None, true);
+        assert_eq!(String::from_str("ff21524111").unwrap(), get_uhex(&unsigned).to_lowercase());
+        assert_eq!(String::from_str("-deadbeef").unwrap(), get_shex(&signed).to_lowercase());
     }
 }
