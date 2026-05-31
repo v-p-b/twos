@@ -6,6 +6,7 @@ license = "GPL-3.0"
 homepage = "https://github.com/v-p-b/twos"
 repository = "https://github.com/v-p-b/twos"
 readme = "README.md"
+description = "Command-line signed/unsigned integer converter utility"
 
 [dependencies]
 clap = { version = "4.5.40", features = ["derive"] }
