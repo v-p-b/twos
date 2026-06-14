@@ -81,7 +81,6 @@ pub fn parse_input(number: String, bits: Option<u64>, neg: bool) -> (BigUint, Bi
             eprintln!("[WARN] Bit size argument ignored!");
         }
     }
-    eprintln!("New array size: {}", tmp_bytes.len());
 
     let mut unsigned = BigUint::from_le_bytes(&tmp_bytes);
 
